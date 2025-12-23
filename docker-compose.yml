@@ -1,0 +1,11 @@
+services:
+  rvs-explorer:
+    build:
+      context: .
+      args:
+        VITE_YAML_URL: ${VITE_YAML_URL:-}
+    ports:
+      - "5038:5038"
+    volumes:
+      - ./public/RVS_phase_rollup.yaml:/usr/share/nginx/html/RVS_phase_rollup.yaml:ro
+      - ./public/status_config.json:/usr/share/nginx/html/status_config.json:ro

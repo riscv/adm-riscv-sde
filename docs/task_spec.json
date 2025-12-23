@@ -1,0 +1,11 @@
+{
+  "project": "RVCH",
+  "summary": "Parent summary",
+  "description": "Parent description",
+  "due_date": "2026-01-31",
+  "type": "Task",
+  "subtasks": [
+    { "summary": "Sub A", "description": "details", "due_date": "2026-01-31" },
+    { "summary": "Sub B", "description": "details", "due_date": "2026-01-31" }
+  ]
+}

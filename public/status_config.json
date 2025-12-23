@@ -1,0 +1,22 @@
+{
+  "doneStatuses": [
+    "done",
+    "approved",
+    "not required to freeze",
+    "ar review not require",
+    "ar review not required",
+    "approval not required",
+    "arc review not required",
+    "ar approved",
+    "not required",
+    "public review done",
+    "not required for ratification-ready",
+    "ratification-ready waiver granted"
+  ],
+  "notStartedStatuses": [
+    "not started",
+    "to do",
+    "open",
+    "backlog"
+  ]
+}

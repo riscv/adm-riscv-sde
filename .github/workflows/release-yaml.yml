@@ -1,0 +1,59 @@
+name: Release YAML
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  release-yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies (if present)
+        run: |
+          if [[ -f requirements.txt ]]; then
+            python3 -m pip install -r requirements.txt
+          fi
+
+      - name: Generate YAML
+        env:
+          RUN_ONCE: "1"
+          REPO_DIR: ${{ github.workspace }}
+          PY: python3
+        run: bash scripts/run_get_issues.sh
+
+      - name: Normalize YAML path
+        run: |
+          if [[ -f RVS_phase_rollup.yaml && ! -f public/RVS_phase_rollup.yaml ]]; then
+            mv RVS_phase_rollup.yaml public/RVS_phase_rollup.yaml
+          fi
+          if [[ ! -f public/RVS_phase_rollup.yaml ]]; then
+            echo "RVS_phase_rollup.yaml not found"
+            exit 1
+          fi
+
+      - name: Set release metadata
+        id: meta
+        run: |
+          ts="$(date -u '+%Y%m%d-%H%M')"
+          echo "tag=rvs-yaml-${ts}" >> "$GITHUB_OUTPUT"
+          echo "name=RVS YAML ${ts} UTC" >> "$GITHUB_OUTPUT"
+
+      - name: Create release with YAML asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.name }}
+          files: public/RVS_phase_rollup.yaml
+          generate_release_notes: false
