@@ -52,7 +52,7 @@ PHASE_ORDER = [
     "Cancelled"
 ]
 
-STATUS_TO_PHASE: Dict[str, str] = {
+STATUS_TO_PHASE_RAW: Dict[str, str] = {
     "specification inception": "Inception",
     "specification in planning": "Planning",
     "specification under development": "Development",
@@ -63,6 +63,16 @@ STATUS_TO_PHASE: Dict[str, str] = {
     "specification ratified": "Ratified",
     "specification cancelled": "Cancelled",
     "cancelled": "Cancelled",
+}
+
+
+def _normalize_status_key(value: str) -> str:
+    lowered = value.strip().lower().replace("-", " ")
+    return " ".join(lowered.split())
+
+
+STATUS_TO_PHASE: Dict[str, str] = {
+    _normalize_status_key(k): v for k, v in STATUS_TO_PHASE_RAW.items()
 }
 
 # Subtask issuetypes that count as approvals
@@ -262,7 +272,7 @@ def fetch_project_issues(
 def phase_for_status(status_name: Optional[str]) -> str:
     if not status_name:
         return "Other"
-    return STATUS_TO_PHASE.get(status_name.strip().lower(), "Other")
+    return STATUS_TO_PHASE.get(_normalize_status_key(status_name), "Other")
 
 
 def group_issues_by_phase(issues: List[SimpleNamespace]) -> "OrderedDict[str, List[str]]":
