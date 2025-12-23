@@ -98,7 +98,7 @@ The UI is bundled with Vite and served as static assets by Nginx. The page is `i
 
 ## GitHub Pages
 
-This repo is configured to deploy to GitHub Pages on every YAML release. The Vite build sets `base` to `/riscv-sde/` when `GITHUB_PAGES=true`.
+This repo is configured to deploy to GitHub Pages on every push to `main` and on every YAML release. The Vite build sets `base` to `/riscv-sde/` when `GITHUB_PAGES=true`.
 
 ## YAML Release Workflow
 
