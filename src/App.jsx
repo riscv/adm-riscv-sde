@@ -29,12 +29,14 @@ export default function App(){
   const [nowTick, setNowTick] = useState(Date.now());
   const [statusConfig, setStatusConfig] = useState(DEFAULT_STATUS_CONFIG);
   const [lastSuccessAt, setLastSuccessAt] = useState(null);
+  const [lastGeneratedAt, setLastGeneratedAt] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
 
   const refreshTimerRef = useRef(null);
   const scrollLockRef = useRef(false);
   const lastDataRef = useRef(null);
   const lastGenRef = useRef(null);
+  const lastGeneratedRef = useRef(null);
   const toastTimerRef = useRef(null);
 
   const fetchYaml = useCallback(async () => {
@@ -70,6 +72,9 @@ export default function App(){
       const now = new Date();
       setLastRefreshedAt(now);
       setLastSuccessAt(now);
+      const generatedAt = nextData.generated_at ? new Date(nextData.generated_at) : null;
+      setLastGeneratedAt(generatedAt);
+      lastGeneratedRef.current = generatedAt;
       setMetaBase("");
       lastDataRef.current = nextData;
       const genKey = nextData.generated_at || JSON.stringify(nextData.counts || {});
@@ -84,6 +89,7 @@ export default function App(){
       if(lastDataRef.current){
         setError(`Error loading YAML. Using last successful data. (${err.message})`);
         setData(lastDataRef.current);
+        setLastGeneratedAt(lastGeneratedRef.current);
       }else{
         setError(`Error loading YAML: ${err.message}`);
         setMetaBase("Failed to load data.");
@@ -132,11 +138,9 @@ export default function App(){
   }, []);
 
   const metaInfo = useMemo(() => {
-    if(!lastRefreshedAt) return metaBase;
-    const delta = formatDelta(nowTick - lastRefreshedAt.getTime());
-    const lastSuccess = lastSuccessAt ? new Date(lastSuccessAt).toLocaleTimeString() : "—";
-    return `${metaBase}Updated ${delta} • Last success ${lastSuccess}`;
-  }, [metaBase, lastRefreshedAt, lastSuccessAt, nowTick]);
+    if(!lastGeneratedAt) return metaBase;
+    return `${metaBase}Data Updated on ${lastGeneratedAt.toLocaleString()}`;
+  }, [metaBase, lastGeneratedAt]);
 
   const filteredData = useMemo(() => {
     if(!data) return null;
