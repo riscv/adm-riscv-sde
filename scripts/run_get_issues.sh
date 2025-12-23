@@ -12,8 +12,9 @@ RUN_ONCE="${RUN_ONCE:-}"
 
 cd "$REPO_DIR"
 
-if [[ ! -f "get-issues.py" ]]; then
-    echo "[RVS] ERROR: get-issues.py not found in ${REPO_DIR}"
+GET_ISSUES="${GET_ISSUES:-${SCRIPT_DIR}/get-issues.py}"
+if [[ ! -f "$GET_ISSUES" ]]; then
+    echo "[RVS] ERROR: get-issues.py not found at ${GET_ISSUES}"
     exit 1
 fi
 
@@ -23,7 +24,7 @@ run_once(){
     local ts
     ts="$(date '+%Y-%m-%d %H:%M:%S')"
     echo "[RVS] $ts — running…"
-    "$PY" ./get-issues.py "${CMD_ARRAY[@]}"
+    "$PY" "$GET_ISSUES" "${CMD_ARRAY[@]}"
 }
 
 if [[ -n "$RUN_ONCE" ]]; then
