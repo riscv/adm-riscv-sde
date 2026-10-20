@@ -209,3 +209,8 @@ mark.match{background:#fff3bf;color:var(--text);padding:0 2px;border-radius:3px}
 .expand-field{display:flex;gap:8px;flex-wrap:wrap}
 .approvals-toggle.is-active{background:var(--brand);border-color:var(--brand);color:#fff}
 .approvals-toggle.is-active:hover{background:var(--brand-hover)}
+
+/* Type and Track chips: the firmer 1.5px border used by the dashboard's controls. */
+.filter-chip{border:1.5px solid #b6bfcf;font-weight:600}
+.filter-chip:hover{border-color:var(--brand)}
+.filter-chip.is-active{border-color:var(--brand)}
