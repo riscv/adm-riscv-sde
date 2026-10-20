@@ -6,6 +6,7 @@ import {
   DEFAULT_SRC_REMOTE,
   DEFAULT_STATUS_CONFIG,
   ENV_YAML_URL,
+  PHASE_COLORS,
   PHASE_ORDER
 } from "./config/constants.js";
 import {formatDelta, issueIsaValue, issueTrackValue, validateYamlShape} from "./utils/format.js";
@@ -165,7 +166,10 @@ export default function App(){
 
   const metaInfo = useMemo(() => {
     if(!lastGeneratedAt) return metaBase;
-    return `${metaBase}Data Updated on ${lastGeneratedAt.toLocaleString()}`;
+    const d = lastGeneratedAt;
+    const pad = (n) => String(n).padStart(2, "0");
+    const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${metaBase}Data updated ${stamp}`;
   }, [metaBase, lastGeneratedAt]);
 
   const filteredData = useMemo(() => {
@@ -221,7 +225,11 @@ export default function App(){
   const scrollToPhase = (phase) => {
     const el = document.getElementById(`phase-${phase.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`);
     if(!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 140;
+    // Leave room for the sticky toolbar (static on narrow screens).
+    const bar = document.querySelector(".sticky-under-header");
+    const sticky = bar && getComputedStyle(bar).position === "sticky";
+    const offset = (sticky ? bar.offsetHeight : 0) + 12;
+    const y = el.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({top: y, behavior: "smooth"});
   };
 
@@ -240,37 +248,52 @@ export default function App(){
     });
   }, [searchQuery, filteredData, matchCount]);
 
+  const filterChip = (label, active, onClick) => h(
+    "button",
+    {type: "button", onClick, "aria-pressed": active, className: `filter-chip ${active ? "is-active" : ""}`},
+    label
+  );
+
   return h(
     "div",
-    null,
-    h("div", {className: "page-bg"}),
-    h(
-      "section",
-      {className: "max-w-6xl mx-auto px-4 pt-4"},
-      h(
-        "div",
-        {className: "text-xs text-gray-500 text-right"},
-        metaInfo
-      )
-    ),
-    toastMsg ? h("div", {className: "toast"}, toastMsg) : null,
+    {className: "max-w-6xl mx-auto px-4 pt-8 pb-16"},
+    toastMsg ? h("div", {className: "toast", role: "status"}, toastMsg) : null,
     h(
       "header",
-      {className: "sticky top-0 z-10 glass border-b border-gray-100"},
+      {className: "app-header"},
       h(
         "div",
-        {className: "max-w-6xl mx-auto px-4 py-5 flex flex-wrap items-center gap-4"},
+        {className: "brand-block"},
+        h("img", {src: "riscv_logo.png", alt: "RISC-V logo", className: "title-logo"}),
+        h("span", {className: "brand-divider", "aria-hidden": "true"}),
         h(
           "div",
-          {className: "flex items-center gap-3"},
-          h("img", {src: "riscv_logo.png", alt: "RISC-V", className: "h-8 w-auto"}),
+          {className: "min-w-0"},
+          h("h1", {className: "page-title"}, "Specification Development Explorer"),
+          h("p", {className: "app-subtitle"}, "Every RISC-V specification by lifecycle phase, with its tasks and approvals.")
+        )
+      ),
+      h(
+        "div",
+        {className: "header-actions"},
+        metaInfo ? h("span", {className: "data-stamp"}, metaInfo) : null,
+        h(
+          "a",
+          {
+            href: "https://riscv.github.io/adm-spec-dashboard/",
+            target: "_blank",
+            rel: "noreferrer",
+            className: "btn sm link-out",
+            title: "RISC-V Specification Dashboard"
+          },
           h(
-            "div",
-            {className: "text-sm font-bold tracking-[0.2em] text-blue-900"},
-            h("span", {className: "block"}, "Specification"),
-            h("span", {className: "block"}, "Development"),
-            h("span", {className: "block"}, "Explorer")
-          )
+            "svg",
+            {className: "btn-icon", viewBox: "0 0 24 24", width: 16, height: 16, fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true"},
+            h("path", {d: "M15 3h6v6"}),
+            h("path", {d: "M10 14L21 3"}),
+            h("path", {d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"})
+          ),
+          "Dashboard"
         )
       )
     ),
@@ -279,106 +302,98 @@ export default function App(){
       {className: "sticky-under-header"},
       h(
         "section",
-        {className: "max-w-6xl mx-auto px-4 pt-4 pb-2 flex flex-col items-center gap-2"},
+        {className: "card"},
         h(
           "div",
-          {className: "search-wrap w-full"},
-          h(
-            "form",
-            {onSubmit: (e) => e.preventDefault()},
-            h(
-              "div",
-              {className: "search-shell flex items-center gap-2 bg-white pl-4 pr-2 py-3 search-shadow"},
-              h(
-                "svg",
-                {xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", className: "w-5 h-5 text-gray-400"},
-                h("path", {fillRule: "evenodd", d: "M10.5 3.75a6.75 6.75 0 1 0 4.221 11.973l3.778 3.778a.75.75 0 1 0 1.06-1.06l-3.778-3.778A6.75 6.75 0 0 0 10.5 3.75Zm-5.25 6.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Z", clipRule: "evenodd"})
-              ),
-              h("input", {
-                type: "search",
-                placeholder: "Search issues and subtasks (key, summary, status, type)...",
-                className: "search-input w-full outline-none text-[15px] bg-transparent",
-                autoComplete: "off",
-                value: searchInput,
-                onChange: (e) => setSearchInput(e.target.value)
-              }),
-              h(
-                "div",
-                {className: "flex items-center gap-2"},
-                h(
-                  "button",
-                  {type: "button", onClick: handleClear, className: "clear-btn", "aria-label": "Clear search"},
-                  "x"
-                )
-              )
-            )
-          )
-        )
-      ),
-      h(
-        "section",
-        {className: "max-w-6xl mx-auto px-4 pb-4 pt-1"},
-        h(
-          "div",
-          {className: "flex flex-wrap items-center justify-center gap-3"},
+          {className: "controls-toolbar"},
           h(
             "div",
-            {className: "filter-bar"},
+            {className: "search-field min-w-0"},
+            h("label", {className: "field-label", htmlFor: "searchInput"}, "Search"),
             h(
-              "button",
-              {
-                onClick: () => toggleIsaFilter("ISA"),
-                className: `filter-btn ${isaFilter === "ISA" ? "is-active" : ""}`
-              },
-              h("span", {className: "filter-box"}, isaFilter === "ISA" ? "x" : ""),
-              "ISA"
-            ),
-            h(
-              "button",
-              {
-                onClick: () => toggleIsaFilter("NON-ISA"),
-                className: `filter-btn ${isaFilter === "NON-ISA" ? "is-active" : ""}`
-              },
-              h("span", {className: "filter-box"}, isaFilter === "NON-ISA" ? "x" : ""),
-              "NON-ISA"
+              "form",
+              {onSubmit: (e) => e.preventDefault()},
+              h(
+                "div",
+                {className: "search-shell"},
+                h(
+                  "svg",
+                  {xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", className: "w-4 h-4 text-muted flex-none", "aria-hidden": "true"},
+                  h("circle", {cx: 11, cy: 11, r: 7}),
+                  h("path", {d: "m20 20-3.5-3.5"})
+                ),
+                h("input", {
+                  id: "searchInput",
+                  type: "search",
+                  placeholder: "Search issues and subtasks (key, summary, status, type)...",
+                  className: "search-input",
+                  autoComplete: "off",
+                  value: searchInput,
+                  onChange: (e) => setSearchInput(e.target.value)
+                }),
+                searchInput ? h(
+                  "button",
+                  {type: "button", onClick: handleClear, className: "clear-btn", "aria-label": "Clear search"},
+                  h(
+                    "svg",
+                    {viewBox: "0 0 24 24", width: 14, height: 14, fill: "none", stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round", "aria-hidden": "true"},
+                    h("path", {d: "M6 6l12 12M18 6 6 18"})
+                  )
+                ) : null
+              )
             )
           ),
           h(
             "div",
-            {className: "filter-bar"},
+            null,
+            h("span", {className: "field-label"}, "Type"),
+            h(
+              "div",
+              {className: "filter-bar"},
+              filterChip("ISA", isaFilter === "ISA", () => toggleIsaFilter("ISA")),
+              filterChip("NON-ISA", isaFilter === "NON-ISA", () => toggleIsaFilter("NON-ISA"))
+            )
+          ),
+          h(
+            "div",
+            null,
+            h("span", {className: "field-label"}, "Track"),
+            h(
+              "div",
+              {className: "filter-bar"},
+              filterChip("Regular", trackFilter === "Regular", () => toggleTrackFilter("Regular")),
+              filterChip("Fast-Track", trackFilter === "Fast-Track", () => toggleTrackFilter("Fast-Track"))
+            )
+          ),
+          h(
+            "div",
+            {className: "expand-field"},
             h(
               "button",
               {
-                onClick: () => toggleTrackFilter("Regular"),
-                className: `filter-btn ${trackFilter === "Regular" ? "is-active" : ""}`
+                type: "button",
+                onClick: () => {
+                  const next = !expandPhases;
+                  setExpandPhases(next);
+                  setExpandedPhase(null);
+                },
+                className: "btn firm expand-btn"
               },
-              h("span", {className: "filter-box"}, trackFilter === "Regular" ? "x" : ""),
-              "Regular"
-            ),
-            h(
-              "button",
-              {
-                onClick: () => toggleTrackFilter("Fast-Track"),
-                className: `filter-btn ${trackFilter === "Fast-Track" ? "is-active" : ""}`
-              },
-              h("span", {className: "filter-box"}, trackFilter === "Fast-Track" ? "x" : ""),
-              "Fast-Track"
+              expandPhases ? "Collapse all" : "Expand all"
             )
           )
-        )
-      ),
-      h(
-        "section",
-        {className: "max-w-6xl mx-auto px-4 pb-4 pt-1"},
+        ),
         h(
           "div",
-          {className: "flex flex-wrap items-center justify-center gap-2"},
+          {className: "phase-toolbar"},
           PHASE_ORDER.map((phase) => {
             const isActive = expandedPhase === phase;
             return h(
               "button",
               {
                 key: phase,
+                type: "button",
+                "aria-pressed": isActive,
                 onClick: () => {
                   const next = isActive ? null : phase;
                   setExpandPhases(false);
@@ -386,30 +401,21 @@ export default function App(){
                   scrollToPhase(phase);
                   history.replaceState(null, "", next ? `#${phase}` : window.location.pathname + window.location.search);
                 },
-                className: `chip phase-chip ${isActive ? "is-active" : ""}`
+                className: `phase-chip ${isActive ? "is-active" : ""}`,
+                style: {"--ph": PHASE_COLORS[phase]}
               },
-              `${phase}: ${typeof counts[phase] === "number" ? counts[phase] : 0}`
+              h("span", {className: "dot", "aria-hidden": "true"}),
+              phase,
+              h("span", {className: "num"}, typeof counts[phase] === "number" ? counts[phase] : 0)
             );
-          }),
-          h(
-            "button",
-            {
-              onClick: () => {
-                const next = !expandPhases;
-                setExpandPhases(next);
-                setExpandedPhase(null);
-              },
-              className: "phase-action expand-emphasis rounded-full px-4 py-2 text-xs ml-2"
-            },
-            expandPhases ? "Collapse all" : "Expand all"
-          )
+          })
         )
       )
     ),
-    error ? h("div", {className: "max-w-6xl mx-auto px-4 mb-3 text-sm text-red-600"}, error) : null,
+    error ? h("div", {className: "error-banner", role: "alert"}, error) : null,
     filteredData ? h(
       "main",
-      {className: "max-w-6xl mx-auto px-4 pb-16"},
+      {className: "flex flex-col gap-3"},
       PHASE_ORDER.map((phase) => h(PhaseSection, {
         phase,
         data,
@@ -423,6 +429,6 @@ export default function App(){
         trackFilter,
         key: phase
       }))
-    ) : h("main", {className: "max-w-6xl mx-auto px-4 pb-16"}, "")
+    ) : h("main", null, error ? "" : h("div", {className: "loading"}, "Loading specifications..."))
   );
 }

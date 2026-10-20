@@ -1,5 +1,5 @@
 import React from "react";
-import {APPROVAL_TYPES} from "../config/constants.js";
+import {APPROVAL_TYPES, PHASE_COLORS} from "../config/constants.js";
 import {phaseFromSummary, phaseIndex} from "../utils/phase.js";
 import {buildMailto, buildSummaryText, highlightText, issueIsaValue, issueTrackValue} from "../utils/format.js";
 import {countByStatus, firstPendingApproval, rowStatusClass, statusClass} from "../utils/status.js";
@@ -26,20 +26,25 @@ export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, st
     ? h(
         "div",
         {className: "meta-line"},
-        `${issue.days_in_phase != null ? `${issue.days_in_phase}d in ${issuePhase}` : `in ${issuePhase}`}`,
+        issue.days_in_phase != null
+          ? [h("span", {className: "meta-strong", key: "d"}, `${issue.days_in_phase}d`), ` in ${issuePhase}`]
+          : `in ${issuePhase}`,
         h("span", {className: "meta-divider"}, "|"),
-        `Tasks Completed: ${taskCounts.done}/${taskCounts.total}`,
+        h("span", {className: "meta-label"}, "Tasks Completed: "),
+        h("span", {className: "meta-strong"}, `${taskCounts.done}/${taskCounts.total}`),
         h("span", {className: "meta-divider"}, "|"),
-        `Tasks in Progress: ${taskCounts.inProgress}`
+        h("span", {className: "meta-label"}, "Tasks in Progress: "),
+        h("span", {className: "meta-strong"}, taskCounts.inProgress)
       )
     : null;
   const approvalsEl = approvalCounts.total > 0
     ? h(
         "div",
         {className: "meta-line"},
-        `Approvals: ${approvalCounts.done}/${approvalCounts.total}`,
+        h("span", {className: "meta-label"}, "Approvals: "),
+        h("span", {className: "meta-strong"}, `${approvalCounts.done}/${approvalCounts.total}`),
         h("span", {className: "meta-divider"}, "|"),
-        "Next Approval: ",
+        h("span", {className: "meta-label"}, "Next Approval: "),
         nextApproval
           ? h(
               "a",
@@ -64,11 +69,10 @@ export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, st
   });
   const leadNodes = [];
   if(isaDisplay){
-    leadNodes.push(h("span", {className: `${isaFilter && isaDisplay === isaFilter ? "filter-highlight" : "meta-strong"}`}, isaDisplay));
+    leadNodes.push(h("span", {key: "isa", className: `tag-pill ${isaFilter && isaDisplay === isaFilter ? "filter-highlight" : ""}`}, isaDisplay));
   }
   if(ftDisplayClean){
-    if(leadNodes.length) leadNodes.push(", ");
-    leadNodes.push(h("span", {className: `${trackFilter && ftDisplayClean === trackFilter ? "filter-highlight" : "meta-strong"}`}, ftDisplayClean));
+    leadNodes.push(h("span", {key: "track", className: `tag-pill ${trackFilter && ftDisplayClean === trackFilter ? "filter-highlight" : ""}`}, ftDisplayClean));
   }
   const relationNodes = linkedRelations.map((li, idx) => {
     const jiraUrl = `https://riscv.atlassian.net/browse/${encodeURIComponent(li.key || "")}`;
@@ -107,132 +111,132 @@ export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, st
     }catch{}
   };
 
+  const stroke = {viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", role: "img", "aria-hidden": "true", className: "gh-ico"};
+  const subtasks = issue.subtasks || [];
+  const chevron = h(
+    "span",
+    {className: "chev", "aria-hidden": "true"},
+    h("svg", {viewBox: "0 0 24 24", width: 14, height: 14, fill: "none", stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round"}, h("path", {d: "m9 6 6 6-6 6"}))
+  );
+
   return h(
     "div",
     {
-      className: "card border border-gray-100 rounded-2xl bg-white",
+      className: "issue-card",
       "data-match": isMatch ? "true" : "false",
       key: issue.key || issue.summary
     },
     h(
       "div",
-      {className: "px-4 py-3 flex items-center justify-between bg-white rounded-t-2xl"},
+      {className: "issue-head"},
       h(
         "div",
-        {className: "flex flex-col gap-2 w-full"},
+        {className: "flex items-start justify-between gap-3"},
         h(
           "div",
-          {className: "flex items-start justify-between gap-3 flex-wrap"},
+          {className: "flex items-baseline gap-2 min-w-0 flex-wrap"},
           h(
-            "div",
-            {className: "flex items-center gap-2 min-w-0 flex-wrap"},
-            h(
-              "a",
-              {
-                className: "mono text-sm font-semibold text-blue-900 hover:underline",
-                href: `https://riscv.atlassian.net/browse/${encodeURIComponent(issue.key || "")}`,
-                target: "_blank",
-                rel: "noopener noreferrer"
-              },
-              highlightText(issue.key || "", searchQuery, h)
-            ),
-            h("span", {className: "text-sm text-slate-800 truncate"}, highlightText(issue.summary || "", searchQuery, h))
+            "a",
+            {
+              className: "mono issue-key",
+              href: `https://riscv.atlassian.net/browse/${encodeURIComponent(issue.key || "")}`,
+              target: "_blank",
+              rel: "noopener noreferrer"
+            },
+            highlightText(issue.key || "", searchQuery, h)
           ),
-          h(
-            "div",
-            {className: "flex items-center gap-1"},
-            ghUrl ? h(
-              "a",
-              {className: "info-icon", href: ghUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Open GitHub repository"},
-              h("svg", {className: "gh-ico", viewBox: "0 0 24 24", role: "img", "aria-hidden": "true"},
-                h("path", {d: "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.016-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.084-.73.084-.73 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.304.762-1.604-2.665-.303-5.466-1.334-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.301 1.23A11.52 11.52 0 0 1 12 6.844c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23 .655 1.653.243 2.873.119 3.176 .77.840 1.235 1.911 1.235 3.221 0 4.609-2.804 5.624-5.476 5.921.43.371.823 1.102.823 2.222 0 1.604-.015 2.896-.015 3.286 0 .321.216.694.825.576C20.565 22.092 24 17.592 24 12.297 24 5.373 18.627 0 12 0z"})
-              )
-            ) : null,
-            h(
-              "a",
-              {className: "info-icon", href: mailto, "aria-label": "Compose status email"},
-              h("svg", {className: "gh-ico", viewBox: "0 0 24 24", role: "img", "aria-hidden": "true"},
-                h("path", {d: "M2 12l19-9-4 19-6-6-4 4v-6l11-7-12 5z"})
-              )
-            ),
-            h(
-              "button",
-              {className: "info-icon", type: "button", onClick: handleCopy, "aria-label": "Copy summary"},
-              h("svg", {className: "gh-ico", viewBox: "0 0 24 24", role: "img", "aria-hidden": "true"},
-                h("path", {d: "M9 9h10v12H9zM5 3h10v4H7v10H5z"})
-              )
-            )
-          )
+          h("span", {className: "issue-title"}, highlightText(issue.summary || "", searchQuery, h))
         ),
         h(
           "div",
-          {className: "info-bar"},
-          leadNodes.length || relationNodes.length
-            ? h(
-                "div",
-                {className: "meta-line"},
-                leadNodes,
-                leadNodes.length && relationNodes.length ? " " : "",
-                relationNodes
-              )
-            : null,
-          phaseSummaryEl,
-          approvalsEl
-        )
-      )
-    ),
-    h(
-      "details",
-      {className: "px-4 pb-4", open: !!openSubtasks},
-      h(
-        "summary",
-        {className: "mt-2 cursor-pointer text-sm text-gray-700 hover:text-blue-900"},
-        h(
-          "span",
-          {className: "subtasks-summary"},
-          h("span", {className: "chev"}, ">"),
-          h("span", null, "Subtasks")
+          {className: "flex items-center gap-1.5 flex-none"},
+          ghUrl ? h(
+            "a",
+            {className: "icon-btn", href: ghUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Open GitHub repository", title: "GitHub repository"},
+            h("svg", {className: "gh-ico", viewBox: "0 0 24 24", fill: "currentColor", role: "img", "aria-hidden": "true"},
+              h("path", {d: "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.016-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.084-.73.084-.73 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.304.762-1.604-2.665-.303-5.466-1.334-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.301 1.23A11.52 11.52 0 0 1 12 6.844c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23 .655 1.653.243 2.873.119 3.176 .77.840 1.235 1.911 1.235 3.221 0 4.609-2.804 5.624-5.476 5.921.43.371.823 1.102.823 2.222 0 1.604-.015 2.896-.015 3.286 0 .321.216.694.825.576C20.565 22.092 24 17.592 24 12.297 24 5.373 18.627 0 12 0z"})
+            )
+          ) : null,
+          h(
+            "a",
+            {className: "icon-btn", href: mailto, "aria-label": "Compose status email", title: "Compose status email"},
+            h("svg", stroke, h("path", {d: "M22 2 11 13"}), h("path", {d: "M22 2 15 22l-4-9-9-4 20-7z"}))
+          ),
+          h(
+            "button",
+            {className: "icon-btn", type: "button", onClick: handleCopy, "aria-label": "Copy summary", title: "Copy summary"},
+            h("svg", stroke, h("rect", {x: 9, y: 9, width: 12, height: 12, rx: 2}), h("path", {d: "M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"}))
+          )
         )
       ),
       h(
         "div",
-        {className: "mt-2 divide-y"},
-        (issue.subtasks || []).map((st) => {
+        {className: "info-bar"},
+        leadNodes.length || relationNodes.length
+          ? h(
+              "div",
+              {className: "meta-line"},
+              leadNodes,
+              relationNodes
+            )
+          : null,
+        phaseSummaryEl,
+        approvalsEl
+      )
+    ),
+    h(
+      "details",
+      {className: "subtasks", open: !!openSubtasks},
+      h(
+        "summary",
+        {className: "subtasks-summary"},
+        chevron,
+        h("span", null, "Subtasks"),
+        h("span", {className: "count-chip"}, subtasks.length)
+      ),
+      h(
+        "div",
+        {className: "subtask-list"},
+        subtasks.map((st) => {
           const approve = isApproval(st);
           const stPhase = phaseFromSummary(st.summary);
           const stIndex = phaseIndex(stPhase);
           const issueIndex = phaseIndex(issue.phase);
           const isCompletedPhase = stIndex > -1 && issueIndex > -1 && stIndex < issueIndex;
           const rowStatus = rowStatusClass(st.status, statusConfig);
+          const chipClass = statusClass(st.status, statusConfig);
+          const markColor = PHASE_COLORS[stPhase] || PHASE_COLORS[issuePhase];
+          const mark = chipClass === "status-done"
+            ? h("span", {className: "bg-completed", title: "Done"}, "\u2713")
+            : chipClass === "status-in-progress"
+              ? h("span", {className: "in-progress", title: "In progress"}, "\u231B")
+              : h("span", {className: "bg-upcoming", title: "Not started"}, "\u2022");
           return h(
             "div",
-            {className: `flex items-start justify-between gap-3 px-2 py-2 ${rowStatus} ${isCompletedPhase ? "done-phase-row" : ""}`, key: st.key || st.summary},
+            {className: `subtask-row ${rowStatus} ${isCompletedPhase ? "done-phase-row" : ""}`, key: st.key || st.summary},
+            h("span", {className: "st-mark", style: markColor ? {"--ph": markColor} : undefined}, mark),
             h(
               "div",
-              {className: "min-w-0"},
+              {className: "min-w-0 flex-1"},
               h(
                 "div",
                 {className: "flex items-center gap-2 flex-wrap"},
                 h(
                   "a",
                   {
-                    className: "mono text-xs font-semibold text-blue-900 hover:underline",
+                    className: "mono subtask-key",
                     href: `https://riscv.atlassian.net/browse/${encodeURIComponent(st.key || "")}`,
                     target: "_blank",
                     rel: "noopener noreferrer"
                   },
                   highlightText(st.key || "", searchQuery, h)
                 ),
-                h("span", {className: `status-chip ${statusClass(st.status, statusConfig)}`}, st.status || ""),
-                h("span", {className: "badge bg-gray-200 text-gray-700"}, st.type || "")
+                h("span", {className: `status-chip ${chipClass}`}, st.status || ""),
+                st.type ? h("span", {className: "badge"}, st.type) : null
               ),
-              h("div", {className: "text-sm text-slate-800"}, highlightText(st.summary || "", searchQuery, h))
+              h("div", {className: "subtask-summary"}, highlightText(st.summary || "", searchQuery, h))
             ),
-            h(
-              "div",
-              {className: "flex items-center gap-2"},
-              approve ? h("span", {className: "badge badge-approval"}, "Approval") : null
-            )
+            approve ? h("span", {className: "badge badge-approval flex-none"}, "Approval") : null
           );
         })
       )

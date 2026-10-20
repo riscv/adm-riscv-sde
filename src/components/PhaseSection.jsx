@@ -1,7 +1,6 @@
 import React from "react";
 import {phaseId} from "../utils/phase.js";
-import {phaseStyle} from "../utils/format.js";
-import {PHASE_ORDER} from "../config/constants.js";
+import {PHASE_COLORS} from "../config/constants.js";
 import {matchesQuery} from "../utils/search.js";
 import IssueCard from "./IssueCard.jsx";
 
@@ -53,55 +52,73 @@ export default function PhaseSection({
     }
   };
 
+  const isEmpty = rawCount === 0;
+  const chevron = h(
+    "span",
+    {className: "chev", "aria-hidden": "true"},
+    h("svg", {viewBox: "0 0 24 24", width: 14, height: 14, fill: "none", stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round"}, h("path", {d: "m9 6 6 6-6 6"}))
+  );
+
   return h(
     "section",
-    {className: "mb-4", key: phase, "data-phase": phase, id: phaseId(phase)},
+    {
+      className: `card phase-card ${isEmpty ? "is-empty" : ""}`,
+      key: phase,
+      "data-phase": phase,
+      id: phaseId(phase),
+      style: {"--ph": PHASE_COLORS[phase] || "var(--border-strong)"}
+    },
     h(
       "details",
       {"data-role": "phase", open: openPhase},
       h(
         "summary",
-        {className: "flex items-center justify-between cursor-pointer select-none px-3 py-2 rounded", style: phaseStyle(phase, rawCount === 0)},
+        {className: "phase-summary"},
         h(
           "div",
-          {className: "flex items-center gap-2"},
-          h("span", {className: "chev"}, ">"),
-          h("span", {className: "font-medium"}, `${phase}${filterLabel}`)
+          {className: "flex items-center gap-2 min-w-0"},
+          chevron,
+          h("span", {className: "phase-swatch", "aria-hidden": "true"}),
+          h(
+            "span",
+            {className: "phase-name"},
+            phase,
+            filterLabel ? h("span", {className: "filter-note"}, filterLabel) : null
+          )
         ),
         h(
           "div",
           {className: "flex items-center gap-2"},
           h(
             "span",
-            {className: "summary-count text-xs", style: {color: rawCount === 0 ? "#6b7280" : "rgba(255,255,255,.9)"}},
+            {className: `count-chip summary-count ${isEmpty ? "" : "strong"}`},
             `${rawCount} ${rawCount === 1 ? "issue" : "issues"}`
           ),
           rawCount > 0 && h(
             "button",
             {
+              type: "button",
               onClick: handleCopyKeys,
-              className: "copy-btn p-1 rounded hover:bg-white/20 transition-colors",
+              className: `icon-btn copy-btn ${copied ? "is-done" : ""}`,
               title: copied ? "Copied!" : "Copy JIRA keys",
               "aria-label": "Copy JIRA keys"
             },
-            copied ? h(
-              "svg",
-              {width: "14", height: "14", viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg"},
-              h("path", {d: "M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z", fill: "rgba(255,255,255,.9)"})
-            ) : h(
-              "svg",
-              {width: "14", height: "14", viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg"},
-              h("path", {d: "M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z", fill: "rgba(255,255,255,.9)"}),
-              h("path", {d: "M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z", fill: "rgba(255,255,255,.9)"})
-            )
+            copied
+              ? h("svg", {width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true"}, h("path", {d: "M20 6 9 17l-5-5"}))
+              : h(
+                  "svg",
+                  {width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true"},
+                  h("rect", {x: 9, y: 9, width: 12, height: 12, rx: 2}),
+                  h("path", {d: "M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"})
+                )
           )
         )
       ),
       h(
         "div",
-        {className: "mt-2 space-y-2"},
+        {className: "phase-body"},
         issues.length === 0
-          ? h("div", {className: "text-sm text-gray-500 px-3 py-2 italic"}, "No issues")
+          ? h("div", {className: "empty-note"}, "No issues")
           : issues.map((issue) => {
               const issueMatch = q && matchesQuery(q, issue);
               const subMatch = q && (issue.subtasks || []).some((st) => matchesQuery(q, issue, st));
