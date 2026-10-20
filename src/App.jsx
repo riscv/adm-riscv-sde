@@ -26,6 +26,18 @@ export default function App(){
   const [expandedPhase, setExpandedPhase] = useState(null);
   const [isaFilter, setIsaFilter] = useState(null);
   const [trackFilter, setTrackFilter] = useState(null);
+  // Show only approval subtasks; kept in the URL (?approvals=1) so the view can be shared.
+  const [approvalsOnly, setApprovalsOnly] = useState(
+    () => new URLSearchParams(window.location.search).get("approvals") === "1"
+  );
+  const toggleApprovalsOnly = () => {
+    const next = !approvalsOnly;
+    setApprovalsOnly(next);
+    const url = new URL(window.location.href);
+    if(next) url.searchParams.set("approvals", "1");
+    else url.searchParams.delete("approvals");
+    history.replaceState(null, "", url);
+  };
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const [nowTick, setNowTick] = useState(Date.now());
   const [statusConfig, setStatusConfig] = useState(DEFAULT_STATUS_CONFIG);
@@ -380,6 +392,17 @@ export default function App(){
                 className: "btn firm expand-btn"
               },
               expandPhases ? "Collapse all" : "Expand all"
+            ),
+            h(
+              "button",
+              {
+                type: "button",
+                "aria-pressed": approvalsOnly,
+                onClick: toggleApprovalsOnly,
+                title: "Show only the approval subtasks of each specification",
+                className: `btn firm expand-btn approvals-toggle ${approvalsOnly ? "is-active" : ""}`
+              },
+              "Approvals only"
             )
           )
         ),
@@ -427,6 +450,7 @@ export default function App(){
         statusConfig,
         isaFilter,
         trackFilter,
+        approvalsOnly,
         key: phase
       }))
     ) : h("main", null, error ? "" : h("div", {className: "loading"}, "Loading specifications..."))

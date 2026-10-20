@@ -17,7 +17,8 @@ export default function PhaseSection({
   expandedPhase,
   statusConfig,
   isaFilter,
-  trackFilter
+  trackFilter,
+  approvalsOnly
 }){
   const allIssues = data?.phases?.[phase] || [];
   const rawCount = typeof counts[phase] === "number" ? counts[phase] : allIssues.length;
@@ -123,7 +124,7 @@ export default function PhaseSection({
               const issueMatch = q && matchesQuery(q, issue);
               const subMatch = q && (issue.subtasks || []).some((st) => matchesQuery(q, issue, st));
               const openSubtasks = subMatch;
-              return h(IssueCard, {issue, openSubtasks, isMatch: issueMatch || subMatch, searchQuery, statusConfig, isaFilter, trackFilter, key: issue.key || issue.summary});
+              return h(IssueCard, {issue, openSubtasks, isMatch: issueMatch || subMatch, searchQuery, statusConfig, isaFilter, trackFilter, approvalsOnly, key: issue.key || issue.summary});
             })
       )
     )

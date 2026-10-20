@@ -11,7 +11,7 @@ function isApproval(sub){
   return sub.is_approval === true || APPROVAL_TYPES.has(sub.type || "");
 }
 
-export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, statusConfig, isaFilter, trackFilter}){
+export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, statusConfig, isaFilter, trackFilter, approvalsOnly}){
   const issuePhase = issue.phase || "";
   const phaseTasks = (issue.subtasks || []).filter((st) => phaseFromSummary(st.summary) === issuePhase);
   const taskOnly = phaseTasks.filter((st) => !isApproval(st));
@@ -112,7 +112,9 @@ export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, st
   };
 
   const stroke = {viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", role: "img", "aria-hidden": "true", className: "gh-ico"};
-  const subtasks = issue.subtasks || [];
+  // With "Approvals only" on, the list shows just the approval subtasks and opens.
+  const allSubtasks = issue.subtasks || [];
+  const subtasks = approvalsOnly ? allSubtasks.filter(isApproval) : allSubtasks;
   const chevron = h(
     "span",
     {className: "chev", "aria-hidden": "true"},
@@ -186,17 +188,20 @@ export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, st
     ),
     h(
       "details",
-      {className: "subtasks", open: !!openSubtasks},
+      {className: "subtasks", open: !!openSubtasks || !!approvalsOnly},
       h(
         "summary",
         {className: "subtasks-summary"},
         chevron,
-        h("span", null, "Subtasks"),
+        h("span", null, approvalsOnly ? "Approvals" : "Subtasks"),
         h("span", {className: "count-chip"}, subtasks.length)
       ),
       h(
         "div",
         {className: "subtask-list"},
+        approvalsOnly && subtasks.length === 0
+          ? h("div", {className: "empty-note"}, "No approval subtasks")
+          : null,
         subtasks.map((st) => {
           const approve = isApproval(st);
           const stPhase = phaseFromSummary(st.summary);

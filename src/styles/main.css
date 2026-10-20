@@ -204,3 +204,8 @@ mark.match{background:#fff3bf;color:var(--text);padding:0 2px;border-radius:3px}
   .page-title{font-size:1.15rem}
   .title-logo{height:28px}
 }
+
+/* "Approvals only" toggle, beside Expand all; filled when on, like the filter chips. */
+.expand-field{display:flex;gap:8px;flex-wrap:wrap}
+.approvals-toggle.is-active{background:var(--brand);border-color:var(--brand);color:#fff}
+.approvals-toggle.is-active:hover{background:var(--brand-hover)}
