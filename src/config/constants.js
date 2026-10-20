@@ -17,16 +17,17 @@ export const DEFAULT_STATUS_CONFIG = {
   notStartedStatuses: ["not started", "to do", "open", "backlog"]
 };
 
+// Lifecycle phase colours shared with the Spec Plan Editor and the Dashboard.
 export const PHASE_COLORS = {
-  Inception: "#003262",
-  Planning: "#1f5aa8",
-  Development: "#0f766e",
-  Stabilization: "#b91c1c",
+  Inception: "#8b5cf6",
+  Planning: "#3b82f6",
+  Development: "#10b981",
+  Stabilization: "#ec4899",
   Freeze: "#f59e0b",
-  "Ratification-Ready": "#dc2626",
-  Publication: "#2563eb",
-  Ratified: "#0f766e",
-  Cancelled: "#6b7280"
+  "Ratification-Ready": "#ef4444",
+  Publication: "#6366f1",
+  Ratified: "#283272",
+  Cancelled: "#94a3b8"
 };
 
 export const PHASE_ORDER = [
