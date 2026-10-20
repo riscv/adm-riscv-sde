@@ -306,6 +306,24 @@ export default function App(){
             h("path", {d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"})
           ),
           "Dashboard"
+        ),
+        h(
+          "a",
+          {
+            href: "https://tech.riscv.org/isa-explorer/",
+            target: "_blank",
+            rel: "noreferrer",
+            className: "btn sm link-out",
+            title: "RISC-V ISA Explorer"
+          },
+          h(
+            "svg",
+            {className: "btn-icon", viewBox: "0 0 24 24", width: 16, height: 16, fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true"},
+            h("path", {d: "M15 3h6v6"}),
+            h("path", {d: "M10 14L21 3"}),
+            h("path", {d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"})
+          ),
+          "ISA Explorer"
         )
       )
     ),
