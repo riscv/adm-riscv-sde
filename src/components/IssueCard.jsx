@@ -11,7 +11,7 @@ function isApproval(sub){
   return sub.is_approval === true || APPROVAL_TYPES.has(sub.type || "");
 }
 
-export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, statusConfig, isaFilter, trackFilter, approvalsOnly}){
+export default function IssueCard({issue, openSubtasks, isMatch, isFocused, searchQuery, statusConfig, isaFilter, trackFilter, approvalsOnly}){
   const issuePhase = issue.phase || "";
   const phaseTasks = (issue.subtasks || []).filter((st) => phaseFromSummary(st.summary) === issuePhase);
   const taskOnly = phaseTasks.filter((st) => !isApproval(st));
@@ -124,7 +124,8 @@ export default function IssueCard({issue, openSubtasks, isMatch, searchQuery, st
   return h(
     "div",
     {
-      className: "issue-card",
+      className: `issue-card${isFocused ? " is-focused" : ""}`,
+      id: issue.key ? `issue-${issue.key}` : undefined,
       "data-match": isMatch ? "true" : "false",
       key: issue.key || issue.summary
     },

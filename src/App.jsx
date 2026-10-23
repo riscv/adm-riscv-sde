@@ -52,6 +52,14 @@ export default function App(){
   const lastGeneratedRef = useRef(null);
   const toastTimerRef = useRef(null);
   const initialPhaseRef = useRef(null);
+  // A spec named in the URL (?spec=RVS-2141 or #RVS-2141): its phase opens,
+  // its card opens and is highlighted, and the page scrolls to it.
+  const [focusKey, setFocusKey] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const key = (params.get("spec") || window.location.hash.replace(/^#/, "")).trim().toUpperCase();
+    return /^RVS-\d+$/.test(key) ? key : null;
+  });
+  const initialFocusRef = useRef(focusKey);
 
   const fetchYaml = useCallback(async () => {
     const sources = [ENV_YAML_URL, DEFAULT_SRC_LOCAL, DEFAULT_SRC_REMOTE].filter(Boolean);
@@ -158,6 +166,29 @@ export default function App(){
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  // Open and scroll to the spec named in the URL once data is available.
+  useEffect(() => {
+    if(!data || !initialFocusRef.current) return;
+    const key = initialFocusRef.current;
+    initialFocusRef.current = null;
+    initialPhaseRef.current = null;
+    const phase = PHASE_ORDER.find((p) => (data.phases?.[p] || []).some((i) => i && i.key === key));
+    if(!phase){
+      setFocusKey(null);
+      return;
+    }
+    setExpandedPhase(phase);
+    // Wait for the phase to open before scrolling.
+    setTimeout(() => {
+      const el = document.getElementById(`issue-${key}`);
+      if(!el) return;
+      const bar = document.querySelector(".sticky-under-header");
+      const sticky = bar && getComputedStyle(bar).position === "sticky";
+      const offset = (sticky ? bar.offsetHeight : 0) + 12;
+      window.scrollTo({top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: "smooth"});
+    }, 50);
+  }, [data]);
 
   // Scroll to the initially targeted phase once data is available.
   useEffect(() => {
@@ -469,6 +500,7 @@ export default function App(){
         isaFilter,
         trackFilter,
         approvalsOnly,
+        focusKey,
         key: phase
       }))
     ) : h("main", null, error ? "" : h("div", {className: "loading"}, "Loading specifications..."))
