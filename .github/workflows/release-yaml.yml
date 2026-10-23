@@ -2,7 +2,9 @@ name: Release YAML
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    # Same times as the Specification Dashboard's Daily Data Fetch, so the two
+    # show the same Jira state: 08:00, 14:00 and 20:00 GMT-3 (11, 17, 23 UTC).
+    - cron: "0 11,17,23 * * *"
   workflow_dispatch: {}
 
 permissions:
