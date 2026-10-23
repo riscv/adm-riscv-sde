@@ -1,5 +1,5 @@
 import React from "react";
-import {APPROVAL_TYPES, PHASE_COLORS} from "../config/constants.js";
+import {APPROVAL_TYPES, DASHBOARD_PHASES_LEFT_OUT, DASHBOARD_URL, PHASE_COLORS} from "../config/constants.js";
 import {phaseFromSummary, phaseIndex} from "../utils/phase.js";
 import {buildMailto, buildSummaryText, highlightText, issueIsaValue, issueTrackValue} from "../utils/format.js";
 import {countByStatus, firstPendingApproval, rowStatusClass, statusClass} from "../utils/status.js";
@@ -153,6 +153,19 @@ export default function IssueCard({issue, openSubtasks, isMatch, isFocused, sear
         h(
           "div",
           {className: "flex items-center gap-1.5 flex-none"},
+          issue.key && !DASHBOARD_PHASES_LEFT_OUT.includes(issuePhase) ? h(
+            "a",
+            {
+              className: "icon-btn",
+              href: `${DASHBOARD_URL}?row=${encodeURIComponent(issue.key)}`,
+              target: "_blank",
+              rel: "noopener noreferrer",
+              "aria-label": "Open in the Specification Dashboard",
+              title: "Specification Dashboard"
+            },
+            // A table: the spec's line on the dashboard.
+            h("svg", stroke, h("rect", {x: 3, y: 4, width: 18, height: 16, rx: 2}), h("path", {d: "M3 9.5h18M3 14.5h18M9 9.5V20"}))
+          ) : null,
           ghUrl ? h(
             "a",
             {className: "icon-btn", href: ghUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Open GitHub repository", title: "GitHub repository"},
