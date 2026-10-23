@@ -1,7 +1,7 @@
 # RVS Explorer
 
 Static React UI for browsing RISC-V phase rollups from a YAML file. It supports:
-- Phase browsing with expand/collapse
+- Phase browsing with expand/collapse; `#Freeze` or `?expand=Freeze` opens a phase, and `?spec=RVS-2141` (or `#RVS-2141`) opens that spec's card
 - Search across issues, subtasks, and linked issues
 - ISA/track filters
 - Status summaries and approval next-step links
