@@ -54,3 +54,8 @@ export const PHASE_ALIASES = {
   "fast-track": null,
   "ecosystem": null
 };
+
+// The Specification Dashboard, which lists the specs still in progress; a
+// card links back to its line there (?row=RVS-...).
+export const DASHBOARD_URL = "https://tech.riscv.org/development/";
+export const DASHBOARD_PHASES_LEFT_OUT = ["Ratified", "Cancelled"];
